@@ -1,35 +1,25 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
-import { sentenceCase } from 'change-case';
+import { filter, orderBy } from 'lodash';
 import { useState, useEffect } from 'react';
-import { collection, where, getDocs , getFirestore, query } from 'firebase/firestore';
+import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
 // @mui
 import {
   Card,
   Table,
   Stack,
-  Paper,
-  Avatar,
-  Button,
-  Popover,
   Checkbox,
-  TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
   Typography,
-  IconButton,
   TableContainer,
-  TablePagination,
+  CircularProgress
 } from '@mui/material';
 // components
-import Label from '../components/label';
-import Iconify from '../components/iconify';
 import Scrollbar from '../components/scrollbar';
 // sections
-import { UserListHead, UserListToolbar } from '../sections/@dashboard/user';
+import { UserListHead } from '../sections/@dashboard/user';
 
 // ----------------------------------------------------------------------
 
@@ -45,35 +35,57 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export default function UserPage() {
-  const data = [];
+  const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
-  const fetchUserData = async () => {
-    const db = getFirestore(firebase.app());
-    const q = query(collection(db, "user"));
-    const querySnapshot = await getDocs(q);
-    querySnapshot.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      const row = {
-        id: doc.id,
-        address: doc.data().address,
-        elecAccNumber: doc.data().elecAccNumber,
-        email: doc.data().email,
-        fname: doc.data().fname,
-        lname: doc.data().lname,
-        nidnum: doc.data().nidnum,
-      };
 
-      // Add the row to the data array
-      data.push(row);
-      // setUsers(doc.data());
-      // console.log(doc.id, " => ", doc.data());
-    });
-    setUsers(data);
-  };
+  // Define initial state for sorting and filtering
+  const [sortBy, setSortBy] = useState('fname'); // Default sort by first name
+  const [filterBy, setFilterBy] = useState('');
   
   useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const db = getFirestore(firebase.app());
+        const q = query(collection(db, "user"));
+        const querySnapshot = await getDocs(q);
+        const fetchedUsers = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          address: doc.data().address,
+          elecAccNumber: doc.data().elecAccNumber,
+          email: doc.data().email,
+          fname: doc.data().fname,
+          lname: doc.data().lname,
+          nidnum: doc.data().nidnum,
+        }));
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchUserData();
   }, []);
+
+  // Filter the data based on the filterBy criteria
+  const filteredUsers = filter(users, (user) => {
+    const fullName = `${user.fname} ${user.lname}`.toLowerCase();
+    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase());
+  });
+
+  // Define function to handle table header click and change sorting criteria
+  const handleSortBy = (id) => {
+    setSortBy(id);
+  };
+
+  // Sort the filtered data based on the sortBy criteria
+  const sortedUsers = sortBy ? orderBy(filteredUsers, sortBy) : filteredUsers;
+
+
+  if (loading) {
+    return <CircularProgress />;
+  }
 
   return (
     <>
@@ -86,9 +98,6 @@ export default function UserPage() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
-          <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-            New User
-          </Button>
         </Stack>
 
         <Card>
@@ -98,9 +107,12 @@ export default function UserPage() {
               <Table>
                 <UserListHead
                   headLabel={TABLE_HEAD}
+                  sortBy={sortBy}
+                  onSortBy={handleSortBy}
+                  onFilterBy={setFilterBy}
                 />
                 <TableBody>
-                  {users.map(row => (
+                  {sortedUsers.map(row => (
                               <tr key={row.id}>
                                 <TableCell padding="checkbox">
                                   <Checkbox />
