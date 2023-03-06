@@ -4,20 +4,22 @@ import { useState, useEffect } from 'react';
 import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
 // @mui
+import { styled } from '@mui/material/styles';
 import {
   Card,
   Table,
   Stack,
+  Paper,
   Checkbox,
+  TableRow,
   TableBody,
   TableCell,
   Container,
   Typography,
   TableContainer,
-  CircularProgress
+  CircularProgress,
+  TablePagination 
 } from '@mui/material';
-// components
-import Scrollbar from '../components/scrollbar';
 // sections
 import { UserListHead } from '../sections/@dashboard/user';
 
@@ -82,6 +84,64 @@ export default function UserPage() {
   // Sort the filtered data based on the sortBy criteria
   const sortedUsers = sortBy ? orderBy(filteredUsers, sortBy) : filteredUsers;
 
+  const StyledTableContainer = styled(TableContainer)(
+    ({ theme }) => ({
+      '&::-webkit-scrollbar': {
+        width: '0.4em',
+        height: '0.4em',
+      },
+      '&::-webkit-scrollbar-track': {
+        borderRadius: '8px',
+        backgroundColor: theme.palette.grey[100],
+      },
+      '&::-webkit-scrollbar-thumb': {
+        borderRadius: '8px',
+        backgroundColor: theme.palette.grey[500],
+      },
+    }),
+  );
+  
+  const StyledTable = styled(Table)(
+    ({ theme }) => ({
+      '& th': {
+        fontWeight: 'bold',
+        backgroundColor: theme.palette.grey[100],
+        borderBottom: 'none',
+      },
+      '& th:first-child, & td:first-child': {
+        paddingLeft: theme.spacing(3),
+      },
+      '& td': {
+        borderBottom: `1px solid ${theme.palette.grey[100]}`,
+      },
+      '& td:last-child': {
+        paddingRight: theme.spacing(3),
+      },
+      '& tr:last-child td': {
+        borderBottom: 'none',
+      },
+    }),
+  );
+  
+  const StyledTableRow = styled(TableRow)(
+    ({ theme }) => ({
+      '& td': {
+        paddingTop: theme.spacing(2),
+        paddingBottom: theme.spacing(2),
+      },
+      '& td:first-child': {
+        paddingLeft: theme.spacing(3),
+      },
+      '& td:last-child': {
+        paddingRight: theme.spacing(3),
+      },
+    }),
+  );
+
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const sortedUsersForCurrentPage = sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   if (loading) {
     return <CircularProgress />;
@@ -101,34 +161,43 @@ export default function UserPage() {
         </Stack>
 
         <Card>
-
-          <Scrollbar>
-            <TableContainer sx={{ minWidth: 800 }}>
-              <Table>
-                <UserListHead
-                  headLabel={TABLE_HEAD}
-                  sortBy={sortBy}
-                  onSortBy={handleSortBy}
-                  onFilterBy={setFilterBy}
-                />
-                <TableBody>
-                  {sortedUsers.map(row => (
-                              <tr key={row.id}>
-                                <TableCell padding="checkbox">
-                                  <Checkbox />
-                                </TableCell>
-                                <td>{row.fname}</td>
-                                <td>{row.lname}</td>
-                                <td>{row.email}</td>
-                                <td>{row.address}</td>
-                                <td>{row.elecAccNumber}</td>
-                                <td>{row.nidnum}</td>
-                              </tr>
-                            ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Scrollbar>
+          <StyledTableContainer component={Paper}>
+            <StyledTable> 
+              <UserListHead
+                headLabel={TABLE_HEAD}
+                sortBy={sortBy}
+                onSortBy={handleSortBy}
+                onFilterBy={setFilterBy}
+              />
+              <TableBody>
+                {sortedUsersForCurrentPage.map(row => (
+                            <StyledTableRow key={row.id}>
+                              <TableCell padding="checkbox">
+                                <Checkbox />
+                              </TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.fname}</TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.lname}</TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.email}</TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.address}</TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.elecAccNumber}</TableCell>
+                              <TableCell sx={{ py: 2, px: 3 }}>{row.nidnum}</TableCell>
+                            </StyledTableRow>
+                          ))}
+              </TableBody>
+            </StyledTable>
+            <TablePagination
+              component="div"
+              rowsPerPageOptions={[5, 10, 25]}
+              count={sortedUsers.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={(event, newPage) => setPage(newPage)}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(parseInt(event.target.value, 10));
+                setPage(0);
+              }}
+            />
+          </StyledTableContainer>
         </Card>
       </Container>
     </>
