@@ -5,6 +5,7 @@ import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
 // @mui
 import { styled } from '@mui/material/styles';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Card,
   Table,
@@ -18,7 +19,9 @@ import {
   Typography,
   TableContainer,
   CircularProgress,
-  TablePagination 
+  TablePagination,
+  InputAdornment, 
+  TextField
 } from '@mui/material';
 // sections
 import { UserListHead } from '../sections/@dashboard/user';
@@ -37,13 +40,19 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export default function UserPage() {
+  // Define initial state for loading and users
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
 
   // Define initial state for sorting and filtering
   const [sortBy, setSortBy] = useState('fname'); // Default sort by first name
   const [filterBy, setFilterBy] = useState('');
+
+  //  Pagination
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   
+  //  useEffect to fetch data from firestore
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -70,20 +79,21 @@ export default function UserPage() {
     fetchUserData();
   }, []);
 
-  // Filter the data based on the filterBy criteria
+  //  Filter the data based on the filterBy criteria
   const filteredUsers = filter(users, (user) => {
     const fullName = `${user.fname} ${user.lname}`.toLowerCase();
-    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase());
+    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase()) || user.elecAccNumber.includes(filterBy.toLowerCase());
   });
 
-  // Define function to handle table header click and change sorting criteria
+  //  Define function to handle table header click and change sorting criteria
   const handleSortBy = (id) => {
     setSortBy(id);
   };
 
-  // Sort the filtered data based on the sortBy criteria
+  //  Sort the filtered data based on the sortBy criteria
   const sortedUsers = sortBy ? orderBy(filteredUsers, sortBy) : filteredUsers;
 
+  //  styling for table
   const StyledTableContainer = styled(TableContainer)(
     ({ theme }) => ({
       '&::-webkit-scrollbar': {
@@ -100,7 +110,7 @@ export default function UserPage() {
       },
     }),
   );
-  
+  //  styling for table
   const StyledTable = styled(Table)(
     ({ theme }) => ({
       '& th': {
@@ -122,7 +132,7 @@ export default function UserPage() {
       },
     }),
   );
-  
+  //  styling for table
   const StyledTableRow = styled(TableRow)(
     ({ theme }) => ({
       '& td': {
@@ -137,12 +147,15 @@ export default function UserPage() {
       },
     }),
   );
-
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-
+  //  sorting and pagination
   const sortedUsersForCurrentPage = sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
+  const handleFilterByChange = (event) => {
+    setFilterBy(event.target.value);
+    setPage(0); // Reset page number when filter changes
+  };
+
+  //  set loading
   if (loading) {
     return <CircularProgress />;
   }
@@ -158,6 +171,20 @@ export default function UserPage() {
           <Typography variant="h4" gutterBottom>
             User
           </Typography>
+
+          <TextField
+            size="small"
+            placeholder="Search users"
+            value={filterBy}
+            onChange={handleFilterByChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              )
+            }}
+          />
         </Stack>
 
         <Card>
