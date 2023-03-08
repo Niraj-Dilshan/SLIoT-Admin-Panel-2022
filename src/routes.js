@@ -6,11 +6,13 @@ import 'firebase/compat/auth';
 // layouts
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
-//
+
+// pages
 import UserPage from './pages/UserPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import DashboardAppPage from './pages/DashboardAppPage';
+import UserInfo from './pages/UserInfo';
 
 // ----------------------------------------------------------------------
 
@@ -55,6 +57,7 @@ export default function Router() {
         { element: <Navigate to="/dashboard/app" />, index: true },
         { path: 'app', element: <DashboardAppPage /> },
         { path: 'user', element: <UserPage /> },
+        { path: 'info', element: <UserInfo /> },
       ],
     },
     {

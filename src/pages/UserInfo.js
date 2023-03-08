@@ -40,7 +40,7 @@ const TABLE_HEAD = [
 
 // ----------------------------------------------------------------------
 
-export default function UserPage() {
+export default function UserInfo() {
   // Define initial state for loading and users
   const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState([]);
