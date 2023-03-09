@@ -1,4 +1,4 @@
-import { collection, getDocs , getFirestore, query, where } from 'firebase/firestore';
+import { collection, getDocs , getFirestore } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
 import { Helmet } from 'react-helmet-async';
 import { useState, useEffect } from 'react';
@@ -57,16 +57,16 @@ export default function UserInfo() {
           const _data_ = await getDocs(entryCollectionRef);
 
           const filteredData = _data_.docs.filter(doc => {
-            //console.log("Current user elecAccNumber is " + auth.user + " <---> " + doc.data().elecAccNumber)
+            // console.log("Current user elecAccNumber is " + auth.user + " <---> " + doc.data().elecAccNumber)
             return doc.data().elecAccNumber === elecAccNumber;
           });
 
-          //console.log(filteredData);
+          // console.log(filteredData);
 
           if (filteredData.length) {
             setEntryList(filteredData.map(doc => ({ ...doc.data(), id:doc.id})));
           }else{
-            //console.log("No user data found!!!")
+            // console.log("No user data found!!!")
           }
         }
       
@@ -99,29 +99,29 @@ export default function UserInfo() {
     
     let keys = Object.keys(OutputTotRealPower);
     keys.sort((a, b) => {
-      let dateA = new Date(a);
-      let dateB = new Date(b);
+      const dateA = new Date(a);
+      const dateB = new Date(b);
       if (dateA > dateB) return -1;
       if (dateA < dateB) return 1;
       return 0;
     });
     let lastIndex = keys.length - 1;
-    let LastRealDayKey = keys[0];
-    let CurrentRealDayValue = OutputTotRealPower[LastRealDayKey];
+    const LastRealDayKey = keys[0];
+    const CurrentRealDayValue = OutputTotRealPower[LastRealDayKey];
     
     keys = Object.keys(OutputTotApperentPower);
     
     keys.sort((a, b) => {
-      let dateA = new Date(a);
-      let dateB = new Date(b);
+      const dateA = new Date(a);
+      const dateB = new Date(b);
       if (dateA > dateB) return -1;
       if (dateA < dateB) return 1;
       return 0;
     });
     
     lastIndex = keys.length - 1;
-    let LastAppDayKey = keys[0];
-    let CurrentAppDayValue = OutputTotApperentPower[LastAppDayKey];
+    const LastAppDayKey = keys[0];
+    const CurrentAppDayValue = OutputTotApperentPower[LastAppDayKey];
     
     const OutputTotRealPowerValues = Object.values(OutputTotRealPower);
     const OutputTotRealPowerSum = OutputTotRealPowerValues.reduce((a, b) => a + b, 0);
@@ -131,25 +131,17 @@ export default function UserInfo() {
     
     let price;
     
-    if(OutputTotRealPowerSum>60){
-      if(OutputTotRealPowerSum>180){
-        price = (75*OutputTotRealPowerSum)+1500;
-      }else if(OutputTotRealPowerSum>120){
-        price = (50*OutputTotRealPowerSum)+960;
-      }else if(OutputTotRealPowerSum>90){
-        price = (50*OutputTotRealPowerSum)+960;
-      }else if(OutputTotRealPowerSum>60){
-        price = (16*OutputTotRealPowerSum)+360;
-      }else if(OutputTotRealPowerSum>0){
-        price = (16*OutputTotRealPowerSum);
-      }
-    }else{
-      if(OutputTotRealPowerSum>30){
-        price = (10*OutputTotRealPowerSum)+240;
-      }else if(OutputTotRealPowerSum>0){
-        price = (8*OutputTotRealPowerSum)+120;
-      }
-    }
+    if (OutputTotRealPowerSum > 180) {
+      price = 75 * OutputTotRealPowerSum + 1500;
+    } else if (OutputTotRealPowerSum > 120) {
+      price = 50 * OutputTotRealPowerSum + 960;
+    } else if (OutputTotRealPowerSum > 60) {
+      price = 16 * OutputTotRealPowerSum + 360;
+    } else if (OutputTotRealPowerSum > 30) {
+      price = 10 * OutputTotRealPowerSum + 240;
+    } else {
+      price = 8 * OutputTotRealPowerSum + 120;
+    }    
     
     const lastTenDates = Object.keys(OutputMaxVoltage).sort().slice(-6);
     const TotRealPowData={
@@ -167,7 +159,7 @@ export default function UserInfo() {
     
     
     const latestDates = Object.keys(OutputMaxVoltage).sort().slice(-6);
-    const tot_appr_pow_data={
+    const TotApprPowData={
     labels: latestDates,
     datasets: [
         {
@@ -183,6 +175,17 @@ export default function UserInfo() {
     const options={
 
     };
+
+    const FormattedNumber = ({ value }) => {
+      const formatter = new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'LKR',
+        minimumFractionDigits: 2,
+      });
+    
+      return <>{formatter.format(value)}</>;
+    };
+    
 
     return (
         <>
@@ -227,7 +230,7 @@ export default function UserInfo() {
                         data={TotRealPowData}
                         options={options}
                         className="mb-4"
-                    ></Bar>
+                    />
                     </div>
                     <br/>
                     <div style={
@@ -235,25 +238,25 @@ export default function UserInfo() {
                         }>
                     <h3>Daily Apperent Power Consumption</h3>
                         <Bar
-                        data={tot_appr_pow_data}
+                        data={TotApprPowData}
                         options={options}
                         className="mb-4"
-                    ></Bar>
+                        />
                     </div>
                     <br/>
                 </center>
                 <Typography variant="h5" gutterBottom>
-                    {"Daily Avg PF: " + (Math.cos(CurrentAppDayValue/CurrentRealDayValue)).toFixed(2) + ""}
+                  {`Daily Avg PF: ${(Math.cos(CurrentAppDayValue/CurrentRealDayValue)).toFixed(2)}`}
                 </Typography>
                 <Typography variant="h5" gutterBottom>
-                    {"Daily Minimum Voltage: " + minVoltage + ""}
+                  {`Daily Minimum Voltage: ${minVoltage}`}
                 </Typography>
                 <Typography variant="h5" gutterBottom>
-                    {"Daily Maximum Voltage: " + maxVoltage + ""}
+                  {`Daily Minimum Voltage: ${maxVoltage}`}
                 </Typography>
-                {/* <Typography variant="h5" gutterBottom>
+                <Typography variant="h5" gutterBottom>
                     Price For Current Usage: <FormattedNumber value={price}/>
-                </Typography> */}
+                </Typography>
             </card>
         </Container>
         </>
