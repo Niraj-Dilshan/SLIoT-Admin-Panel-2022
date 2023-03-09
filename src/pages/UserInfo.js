@@ -28,7 +28,7 @@ ChartJS.register(
   )
 
 export default function UserInfo() {
-    // Get user data from sessionStorage
+
     const elecAccNumber = sessionStorage.getItem('elecAccNumber');
     const fname = sessionStorage.getItem('fname');
     const lname = sessionStorage.getItem('lname');
@@ -36,37 +36,24 @@ export default function UserInfo() {
     const address = sessionStorage.getItem('address');
     const nidnum = sessionStorage.getItem('nidnum');
 
-    // Get data from firestore
     const db = getFirestore(firebase.app());
-    // const entryCollectionRef = query(collection(db, "entry"), where("elecAccNumber", "==", elecAccNumber));
 
     const entryCollectionRef = collection(db, "entry");
 
-    // Define initial state for entryList
     const [entryList, setEntryList] = useState([{}]);
 
     useEffect(() =>{
         const getEntry = async () => {
-            // const _data_ = await getDocs(entryCollectionRef);
-
-            // _data_.forEach((doc) => {
-            //     // doc.data() is never undefined for query doc snapshots
-            //     setEntryList(doc.data());
-            //     console.log(doc.id, " => ", doc.data());
-            // });
           const _data_ = await getDocs(entryCollectionRef);
 
           const filteredData = _data_.docs.filter(doc => {
-            // console.log("Current user elecAccNumber is " + auth.user + " <---> " + doc.data().elecAccNumber)
             return doc.data().elecAccNumber === elecAccNumber;
           });
-
-          // console.log(filteredData);
 
           if (filteredData.length) {
             setEntryList(filteredData.map(doc => ({ ...doc.data(), id:doc.id})));
           }else{
-            // console.log("No user data found!!!")
+            console.log("No data found");
           }
         }
       
