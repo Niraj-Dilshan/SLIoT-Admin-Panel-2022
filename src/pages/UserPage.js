@@ -159,9 +159,14 @@ export default function UserPage() {
     setPage(0); // Reset page number when filter changes
   };
 
-  const handleRowClick = (elecAccNumber) => {
-    sessionStorage.setItem('elecAccNumber', elecAccNumber);
-    navigate(`/info}`);
+  const handleRowClick = (row) => {
+    sessionStorage.setItem('elecAccNumber', row.elecAccNumber);
+    sessionStorage.setItem('fname', row.fname);
+    sessionStorage.setItem('lname', row.lname);
+    sessionStorage.setItem('email', row.email);
+    sessionStorage.setItem('address', row.address);
+    sessionStorage.setItem('nidnum', row.nidnum);
+    navigate(`/dashboard/info`);
   };
 
   //  set loading
@@ -172,7 +177,7 @@ export default function UserPage() {
   return (
     <>
       <Helmet>
-        <title> Users | AEMS </title>
+        <title> User | AEMS </title>
       </Helmet>
 
       <Container>
@@ -207,7 +212,7 @@ export default function UserPage() {
               />
               <TableBody>
                 {sortedUsersForCurrentPage.map(row => (
-                            <StyledTableRow key={row.id} onClick={() => handleRowClick(row.elecAccNumber)}>
+                            <StyledTableRow key={row.id} onClick={() => handleRowClick(row)}>
                               <TableCell padding="checkbox">
                                 <Checkbox />
                               </TableCell>

@@ -1,241 +1,261 @@
-import { Helmet } from 'react-helmet-async';
-import { filter, orderBy } from 'lodash';
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
+import { collection, getDocs , getFirestore, query, where } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
-// @mui
-import { styled } from '@mui/material/styles';
-import SearchIcon from '@mui/icons-material/Search';
+import { Helmet } from 'react-helmet-async';
+import { useState, useEffect } from 'react';
 import {
-  Card,
-  Table,
   Stack,
-  Paper,
-  Checkbox,
-  TableRow,
-  TableBody,
-  TableCell,
   Container,
   Typography,
-  TableContainer,
-  CircularProgress,
-  TablePagination,
-  InputAdornment, 
-  TextField
 } from '@mui/material';
-// sections
-import { UserListHead } from '../sections/@dashboard/user';
 
-// ----------------------------------------------------------------------
+import {
+    Chart as ChartJS,
+    BarElement,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+} from 'chart.js';
 
-const TABLE_HEAD = [
-  { id: 'fname', label: 'First Name', alignRight: false },
-  { id: 'lname', label: 'Last Name', alignRight: false },
-  { id: 'email', label: 'Email', alignRight: false },
-  { id: 'address', label: 'Address', alignRight: false },
-  { id: 'elecAccNumber', label: 'Electricity Account Number', alignRight: false },
-  { id: 'nidnum', label: 'National ID Number', alignRight: false },
-];
+import {Bar} from 'react-chartjs-2';
 
-// ----------------------------------------------------------------------
+ChartJS.register(
+    BarElement,
+    CategoryScale,
+    LinearScale,
+    Tooltip,
+    Legend
+  )
 
 export default function UserInfo() {
-  // Define initial state for loading and users
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState([]);
+    // Get user data from sessionStorage
+    const elecAccNumber = sessionStorage.getItem('elecAccNumber');
+    const fname = sessionStorage.getItem('fname');
+    const lname = sessionStorage.getItem('lname');
+    const email = sessionStorage.getItem('email');
+    const address = sessionStorage.getItem('address');
+    const nidnum = sessionStorage.getItem('nidnum');
 
-  // Define initial state for sorting and filtering
-  const [sortBy, setSortBy] = useState('fname'); // Default sort by first name
-  const [filterBy, setFilterBy] = useState('');
+    // Get data from firestore
+    const db = getFirestore(firebase.app());
+    // const entryCollectionRef = query(collection(db, "entry"), where("elecAccNumber", "==", elecAccNumber));
 
-  //  Pagination
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+    const entryCollectionRef = collection(db, "entry");
 
-  //  History
-  const navigate = useNavigate();
+    // Define initial state for entryList
+    const [entryList, setEntryList] = useState([{}]);
 
-  //  useEffect to fetch data from firestore
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const db = getFirestore(firebase.app());
-        const q = query(collection(db, "user"));
-        const querySnapshot = await getDocs(q);
-        const fetchedUsers = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          address: doc.data().address,
-          elecAccNumber: doc.data().elecAccNumber,
-          email: doc.data().email,
-          fname: doc.data().fname,
-          lname: doc.data().lname,
-          nidnum: doc.data().nidnum,
-        }));
-        setUsers(fetchedUsers);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+    useEffect(() =>{
+        const getEntry = async () => {
+            // const _data_ = await getDocs(entryCollectionRef);
+
+            // _data_.forEach((doc) => {
+            //     // doc.data() is never undefined for query doc snapshots
+            //     setEntryList(doc.data());
+            //     console.log(doc.id, " => ", doc.data());
+            // });
+          const _data_ = await getDocs(entryCollectionRef);
+
+          const filteredData = _data_.docs.filter(doc => {
+            //console.log("Current user elecAccNumber is " + auth.user + " <---> " + doc.data().elecAccNumber)
+            return doc.data().elecAccNumber === elecAccNumber;
+          });
+
+          //console.log(filteredData);
+
+          if (filteredData.length) {
+            setEntryList(filteredData.map(doc => ({ ...doc.data(), id:doc.id})));
+          }else{
+            //console.log("No user data found!!!")
+          }
+        }
+      
+        getEntry();
+      }, [])
+    
+      const OutputMaxVoltage = entryList.reduce((prevValue, { date, DayMaxVoltage }) => {
+        prevValue[date] = typeof DayMaxVoltage === "string" ? JSON.parse(DayMaxVoltage) : DayMaxVoltage
+        return prevValue;
+    }, {});
+    
+    const maxVoltage = Math.max(...Object.values(OutputMaxVoltage));
+    
+    const OutputMinVoltage = entryList.reduce((prevValue, { date, DayMinVoltage }) => {
+      prevValue[date] = typeof DayMinVoltage === "string" ? JSON.parse(DayMinVoltage) : DayMinVoltage
+      return prevValue;
+    }, {});
+    
+    const minVoltage = Math.max(...Object.values(OutputMinVoltage));
+    
+    const OutputTotRealPower = entryList.reduce((prevValue, { date, DayTotRealPower }) => {
+      prevValue[date] = typeof DayTotRealPower === "string" ? JSON.parse(DayTotRealPower) : DayTotRealPower
+      return prevValue;
+    }, {});
+    
+    const OutputTotApperentPower = entryList.reduce((prevValue, { date, DaytotapparentPower }) => {
+      prevValue[date] = typeof DaytotapparentPower === "string" ? JSON.parse(DaytotapparentPower) : DaytotapparentPower
+      return prevValue;
+    }, {});
+    
+    let keys = Object.keys(OutputTotRealPower);
+    keys.sort((a, b) => {
+      let dateA = new Date(a);
+      let dateB = new Date(b);
+      if (dateA > dateB) return -1;
+      if (dateA < dateB) return 1;
+      return 0;
+    });
+    let lastIndex = keys.length - 1;
+    let LastRealDayKey = keys[0];
+    let CurrentRealDayValue = OutputTotRealPower[LastRealDayKey];
+    
+    keys = Object.keys(OutputTotApperentPower);
+    
+    keys.sort((a, b) => {
+      let dateA = new Date(a);
+      let dateB = new Date(b);
+      if (dateA > dateB) return -1;
+      if (dateA < dateB) return 1;
+      return 0;
+    });
+    
+    lastIndex = keys.length - 1;
+    let LastAppDayKey = keys[0];
+    let CurrentAppDayValue = OutputTotApperentPower[LastAppDayKey];
+    
+    const OutputTotRealPowerValues = Object.values(OutputTotRealPower);
+    const OutputTotRealPowerSum = OutputTotRealPowerValues.reduce((a, b) => a + b, 0);
+    
+    const OutputTotApperentPowerValues = Object.values(OutputMaxVoltage);
+    const OutputTotApperentPowerSum = OutputTotApperentPowerValues.reduce((a, b) => a + b, 0);
+    
+    let price;
+    
+    if(OutputTotRealPowerSum>60){
+      if(OutputTotRealPowerSum>180){
+        price = (75*OutputTotRealPowerSum)+1500;
+      }else if(OutputTotRealPowerSum>120){
+        price = (50*OutputTotRealPowerSum)+960;
+      }else if(OutputTotRealPowerSum>90){
+        price = (50*OutputTotRealPowerSum)+960;
+      }else if(OutputTotRealPowerSum>60){
+        price = (16*OutputTotRealPowerSum)+360;
+      }else if(OutputTotRealPowerSum>0){
+        price = (16*OutputTotRealPowerSum);
       }
+    }else{
+      if(OutputTotRealPowerSum>30){
+        price = (10*OutputTotRealPowerSum)+240;
+      }else if(OutputTotRealPowerSum>0){
+        price = (8*OutputTotRealPowerSum)+120;
+      }
+    }
+    
+    const lastTenDates = Object.keys(OutputMaxVoltage).sort().slice(-6);
+    const TotRealPowData={
+      labels: lastTenDates,
+      datasets: [
+        {
+          label: 'Total Real Power',
+          data: lastTenDates.map(date => OutputTotRealPower[date]),
+          backgroundColor: 'aqua',
+          borderColor: 'black',
+          borderWidth: 1,
+        },
+      ]
+    };
+    
+    
+    const latestDates = Object.keys(OutputMaxVoltage).sort().slice(-6);
+    const tot_appr_pow_data={
+    labels: latestDates,
+    datasets: [
+        {
+        label: 'Total Apparent Power',
+        data: latestDates.map(date => OutputTotApperentPower[date]),
+        backgroundColor: 'green',
+        borderColor: 'black',
+        borderWidth: 1,
+        },
+    ]
     };
 
-    fetchUserData();
-  }, []);
+    const options={
 
-  //  Filter the data based on the filterBy criteria
-  const filteredUsers = filter(users, (user) => {
-    const fullName = `${user.fname} ${user.lname}`.toLowerCase();
-    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase()) || user.elecAccNumber.includes(filterBy.toLowerCase());
-  });
+    };
 
-  //  Define function to handle table header click and change sorting criteria
-  const handleSortBy = (id) => {
-    setSortBy(id);
-  };
+    return (
+        <>
+        <Helmet>
+            <title> User's Info | AEMS </title>
+        </Helmet>
 
-  //  Sort the filtered data based on the sortBy criteria
-  const sortedUsers = sortBy ? orderBy(filteredUsers, sortBy) : filteredUsers;
-
-  //  styling for table
-  const StyledTableContainer = styled(TableContainer)(
-    ({ theme }) => ({
-      '&::-webkit-scrollbar': {
-        width: '0.4em',
-        height: '0.4em',
-      },
-      '&::-webkit-scrollbar-track': {
-        borderRadius: '8px',
-        backgroundColor: theme.palette.grey[100],
-      },
-      '&::-webkit-scrollbar-thumb': {
-        borderRadius: '8px',
-        backgroundColor: theme.palette.grey[500],
-      },
-    }),
-  );
-  //  styling for table
-  const StyledTable = styled(Table)(
-    ({ theme }) => ({
-      '& th': {
-        fontWeight: 'bold',
-        backgroundColor: theme.palette.grey[100],
-        borderBottom: 'none',
-      },
-      '& th:first-child, & td:first-child': {
-        paddingLeft: theme.spacing(3),
-      },
-      '& td': {
-        borderBottom: `1px solid ${theme.palette.grey[100]}`,
-      },
-      '& td:last-child': {
-        paddingRight: theme.spacing(3),
-      },
-      '& tr:last-child td': {
-        borderBottom: 'none',
-      },
-    }),
-  );
-  //  styling for table
-  const StyledTableRow = styled(TableRow)(
-    ({ theme }) => ({
-      '& td': {
-        paddingTop: theme.spacing(2),
-        paddingBottom: theme.spacing(2),
-      },
-      '& td:first-child': {
-        paddingLeft: theme.spacing(3),
-      },
-      '& td:last-child': {
-        paddingRight: theme.spacing(3),
-      },
-    }),
-  );
-  //  sorting and pagination
-  const sortedUsersForCurrentPage = sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  const handleFilterByChange = (event) => {
-    setFilterBy(event.target.value);
-    setPage(0); // Reset page number when filter changes
-  };
-
-  const handleRowClick = (elecAccNumber) => {
-    sessionStorage.setItem('elecAccNumber', elecAccNumber);
-    navigate(`/info}`);
-  };
-
-  //  set loading
-  if (loading) {
-    return <CircularProgress />;
-  }
-
-  return (
-    <>
-      <Helmet>
-        <title> Users | AEMS </title>
-      </Helmet>
-
-      <Container>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
-          <Typography variant="h4" gutterBottom>
-            User
-          </Typography>
-
-          <TextField
-            size="small"
-            placeholder="Search users"
-            value={filterBy}
-            onChange={handleFilterByChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              )
-            }}
-          />
-        </Stack>
-
-        <Card>
-          <StyledTableContainer component={Paper}>
-            <StyledTable> 
-              <UserListHead
-                headLabel={TABLE_HEAD}
-                sortBy={sortBy}
-                onSortBy={handleSortBy}
-                onFilterBy={setFilterBy}
-              />
-              <TableBody>
-                {sortedUsersForCurrentPage.map(row => (
-                            <StyledTableRow key={row.id} onClick={() => handleRowClick(row.elecAccNumber)}>
-                              <TableCell padding="checkbox">
-                                <Checkbox />
-                              </TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.fname}</TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.lname}</TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.email}</TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.address}</TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.elecAccNumber}</TableCell>
-                              <TableCell sx={{ py: 2, px: 3 }}>{row.nidnum}</TableCell>
-                            </StyledTableRow>
-                          ))}
-              </TableBody>
-            </StyledTable>
-            <TablePagination
-              component="div"
-              rowsPerPageOptions={[5, 10, 25]}
-              count={sortedUsers.length}
-              rowsPerPage={rowsPerPage}
-              page={page}
-              onPageChange={(event, newPage) => setPage(newPage)}
-              onRowsPerPageChange={(event) => {
-                setRowsPerPage(parseInt(event.target.value, 10));
-                setPage(0);
-              }}
-            />
-          </StyledTableContainer>
-        </Card>
-      </Container>
-    </>
-  );
+        <Container>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
+            <Typography variant="h4" gutterBottom>
+                User's Info
+            </Typography>
+            </Stack>
+            <card>
+                <cardHeader title="User's Info" />
+                <cardContent>
+                    <Typography variant="h6" gutterBottom>
+                        Account Number: {elecAccNumber}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                        First Name: {fname}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                        Last Name: {lname}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                        Email: {email}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                        Address: {address}
+                    </Typography>
+                    <Typography variant="h6" gutterBottom>
+                        NID Number: {nidnum}
+                    </Typography>
+                </cardContent>
+                <center>  
+                    <div style={
+                        {padding: '20px', backgroundColor:'#f2f2f2', borderRadius:"15px"}
+                        }>
+                    <h3>Daily Energy Consumption</h3>
+                    <Bar
+                        data={TotRealPowData}
+                        options={options}
+                        className="mb-4"
+                    ></Bar>
+                    </div>
+                    <br/>
+                    <div style={
+                        {padding: '20px', backgroundColor:'#f2f2f2', borderRadius:"15px"}
+                        }>
+                    <h3>Daily Apperent Power Consumption</h3>
+                        <Bar
+                        data={tot_appr_pow_data}
+                        options={options}
+                        className="mb-4"
+                    ></Bar>
+                    </div>
+                    <br/>
+                </center>
+                <Typography variant="h5" gutterBottom>
+                    {"Daily Avg PF: " + (Math.cos(CurrentAppDayValue/CurrentRealDayValue)).toFixed(2) + ""}
+                </Typography>
+                <Typography variant="h5" gutterBottom>
+                    {"Daily Minimum Voltage: " + minVoltage + ""}
+                </Typography>
+                <Typography variant="h5" gutterBottom>
+                    {"Daily Maximum Voltage: " + maxVoltage + ""}
+                </Typography>
+                {/* <Typography variant="h5" gutterBottom>
+                    Price For Current Usage: <FormattedNumber value={price}/>
+                </Typography> */}
+            </card>
+        </Container>
+        </>
+    );
 }
