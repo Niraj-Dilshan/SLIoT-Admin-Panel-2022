@@ -5,6 +5,13 @@ import { Grid, Container, Typography } from '@mui/material';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
+// firebase
+import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
+import firebase from "firebase/compat/app";
+
+// Rect
+import { useState, useEffect } from 'react';
+
 // sections
 import {
   AppTasks,
@@ -17,6 +24,45 @@ import {
 // ----------------------------------------------------------------------
 
 export default function DashboardAppPage() {
+
+  const [users, setUsers] = useState([]);
+  const [entryList, setEntryList] = useState([{}]);
+  const [userCount, setUserCount] = useState(0);
+  const [userCountsByDistrict, setUserCountsByDistrict] = useState({});
+
+  const db = getFirestore(firebase.app());
+  const entryCollectionRef = query(collection(db, "entry"));
+  const userCollectionRef = query(collection(db, "user"));
+  
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const userSnapshot = await getDocs(userCollectionRef);
+        const fetchedUsers = userSnapshot.docs.map(doc => ({
+          id: doc.id,
+          address: doc.data().address,
+          elecAccNumber: doc.data().elecAccNumber,
+          email: doc.data().email,
+          fname: doc.data().fname,
+          lname: doc.data().lname,
+          nidnum: doc.data().nidnum,
+          district: doc.data().district,
+        }));
+
+        const countsByDistrict = fetchedUsers.reduce((counts, user) => {
+          counts[user.district] = (counts[user.district] || 0) + 1;
+          return counts;
+        }, {});
+
+        setUsers(fetchedUsers);
+        setUserCount(fetchedUsers.length);
+        setUserCountsByDistrict(countsByDistrict);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchUserData();
+  }, []);
 
   return (
     <>
@@ -31,11 +77,11 @@ export default function DashboardAppPage() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={6}>
-            <AppWidgetSummary title="New Users" total={714000} color="warning" icon={<PersonAddAltIcon/>} />
+            <AppWidgetSummary title="New Users" total={userCount} color="warning" icon={<PersonAddAltIcon/>} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={6}>
-            <AppWidgetSummary title="Total Users" total={1352831} color="warning" icon={<PeopleAltIcon/>} />
+            <AppWidgetSummary title="Total Users" total={userCount} color="warning" icon={<PeopleAltIcon/>} />
           </Grid>
 
           <Grid item xs={12} md={12} lg={12}>
@@ -62,38 +108,17 @@ export default function DashboardAppPage() {
                   fill: 'solid',
                   data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
                 },
-                {
-                  name: 'Team B',
-                  type: 'area',
-                  fill: 'gradient',
-                  data: [44, 55, 41, 67, 22, 43, 21, 41, 56, 27, 43],
-                },
-                {
-                  name: 'Team C',
-                  type: 'line',
-                  fill: 'solid',
-                  data: [30, 25, 36, 30, 45, 35, 64, 52, 59, 36, 39],
-                },
               ]}
             />
           </Grid>
 
           <Grid item xs={12} md={12} lg={12}>
             <AppConversionRates
-              title="Conversion Rates"
-              subheader="(+43%) than last year"
-              chartData={[
-                { label: 'Italy', value: 400 },
-                { label: 'Japan', value: 430 },
-                { label: 'China', value: 448 },
-                { label: 'Canada', value: 470 },
-                { label: 'France', value: 540 },
-                { label: 'Germany', value: 580 },
-                { label: 'South Korea', value: 690 },
-                { label: 'Netherlands', value: 1100 },
-                { label: 'United States', value: 1200 },
-                { label: 'United Kingdom', value: 1380 },
-              ]}
+              title="Categorize Users by District"
+              chartData={Object.entries(userCountsByDistrict).map(([district, count]) => ({
+                label: district,
+                value: count
+              }))}
             />
           </Grid>
 
@@ -121,6 +146,13 @@ export default function DashboardAppPage() {
                 { id: '5', label: 'Sprint Showcase' },
               ]}
             />
+          </Grid>
+          <Grid>
+            <div>
+              {Object.keys(userCountsByDistrict).map(district => (
+                <p key={district}>{district}: {userCountsByDistrict[district]}</p>
+              ))}
+            </div>
           </Grid>
         </Grid>
       </Container>
