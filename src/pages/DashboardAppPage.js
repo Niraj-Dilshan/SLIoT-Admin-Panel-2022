@@ -14,11 +14,10 @@ import { useState, useEffect } from 'react';
 
 // sections
 import {
-  AppTasks,
   AppNewsUpdate,
   AppWebsiteVisits,
   AppWidgetSummary,
-  AppConversionRates,
+  AppDistricts,
 } from '../sections/@dashboard/app';
 
 // ----------------------------------------------------------------------
@@ -113,7 +112,7 @@ export default function DashboardAppPage() {
           </Grid>
 
           <Grid item xs={12} md={12} lg={12}>
-            <AppConversionRates
+            <AppDistricts
               title="Categorize Users by District"
               chartData={Object.entries(userCountsByDistrict).map(([district, count]) => ({
                 label: district,
@@ -133,26 +132,6 @@ export default function DashboardAppPage() {
                 postedAt: faker.date.recent(),
               }))}
             />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={6}>
-            <AppTasks
-              title="Tasks"
-              list={[
-                { id: '1', label: 'Create FireStone Logo' },
-                { id: '2', label: 'Add SCSS and JS files if required' },
-                { id: '3', label: 'Stakeholder Meeting' },
-                { id: '4', label: 'Scoping & Estimations' },
-                { id: '5', label: 'Sprint Showcase' },
-              ]}
-            />
-          </Grid>
-          <Grid>
-            <div>
-              {Object.keys(userCountsByDistrict).map(district => (
-                <p key={district}>{district}: {userCountsByDistrict[district]}</p>
-              ))}
-            </div>
           </Grid>
         </Grid>
       </Container>

@@ -9,13 +9,13 @@ import { useChart } from '../../../components/chart';
 
 // ----------------------------------------------------------------------
 
-AppConversionRates.propTypes = {
+AppDistricts.propTypes = {
   title: PropTypes.string,
   subheader: PropTypes.string,
   chartData: PropTypes.array.isRequired,
 };
 
-export default function AppConversionRates({ title, subheader, chartData, ...other }) {
+export default function AppDistricts({ title, subheader, chartData, ...other }) {
   const chartLabels = chartData.map((i) => i.label);
 
   const chartSeries = chartData.map((i) => i.value);
