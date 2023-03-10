@@ -5,15 +5,18 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // firebase
-import { collection, getDocs , getFirestore, query, orderBy, limit, where } from 'firebase/firestore';
+import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
+
+// lodash
+// import { groupBy} from "lodash";
 
 // Rect
 import { useState, useEffect } from 'react';
 
 // sections
 import {
-  AppWebsiteVisits,
+  AppVoltages,
   AppWidgetSummary,
   AppDistricts,
 } from '../sections/@dashboard/app';
@@ -25,12 +28,14 @@ export default function DashboardAppPage() {
   const [users, setUsers] = useState([]);
   const [userCount, setUserCount] = useState(0);
   const [userCountsByDistrict, setUserCountsByDistrict] = useState({});
+  // const [chartData, setChartData] = useState([]);
+  // const [chartLabels, setChartLabels] = useState([]);
 
   const db = getFirestore(firebase.app());
-  const entryLastdayRef = query(collection(db, "entry"), orderBy('date', 'desc'), limit(1));
+  // const entryLastdayRef = query(collection(db, "entry"), orderBy('date', 'desc'), limit(1));
   const userCollectionRef = query(collection(db, "user"));
   
-  useEffect(() => {
+  useEffect( () => {
     const fetchUserData = async () => {
       try {
         const userSnapshot = await getDocs(userCollectionRef);
@@ -60,39 +65,56 @@ export default function DashboardAppPage() {
     fetchUserData();
   },[]);
 
-  const getLastEntryDate = async () => {
-    const querySnapshot = await getDocs(entryLastdayRef);    
-    const lastEntry = querySnapshot.docs[0];
-    const date = lastEntry?.data()?.date;
-    return date;
-  };
+  // const getLastEntryDate = async () => {
+  //   const querySnapshot = await getDocs(entryLastdayRef);    
+  //   const lastEntry = querySnapshot.docs[0];
+  //   const date = lastEntry?.data()?.date;
+  //   return date;
+  // };
   
-  // Get the last 10 days of entries from the database
-  const getLastTenDaysEntries = async () => {
-    const lastEntryDate = await getLastEntryDate();
-    console.log(lastEntryDate);
-    const parts = lastEntryDate.split('-');
-    const year = parseInt(parts[2], 10);
-    const month = parseInt(parts[1], 10) - 1; // subtract 1 since month is zero-indexed
-    const day = parseInt(parts[0], 10);
-    const date = new Date(year, month, day);
-    const tenDaysAgo = new Date(date- (9 * 24 * 60 * 60 * 1000));
-    console.log(tenDaysAgo);
-    const tenDaysAgoString = `${tenDaysAgo.toISOString().substring(8, 10)}-${tenDaysAgo.toISOString().substring(5, 7)}-${tenDaysAgo.toISOString().substring(0, 4)}`;
+  // // Get the last 10 days of entries from the database
+  // const getLastTenDaysEntries = async () => {
+  //   const lastEntryDate = await getLastEntryDate();
+  //   console.log(lastEntryDate);
+  //   const parts = lastEntryDate.split('-');
+  //   const year = parseInt(parts[2], 10);
+  //   const month = parseInt(parts[1], 10) - 1; // subtract 1 since month is zero-indexed
+  //   const day = parseInt(parts[0], 10);
+  //   const date = new Date(year, month, day);
+  //   const tenDaysAgo = new Date(date- (9 * 24 * 60 * 60 * 1000));
+  //   console.log(tenDaysAgo);
+  //   const tenDaysAgoString = `${tenDaysAgo.toISOString().substring(8, 10)}-${tenDaysAgo.toISOString().substring(5, 7)}-${tenDaysAgo.toISOString().substring(0, 4)}`;
 
-    console.log(tenDaysAgoString);
-    const entryLastTendaysRef = query(collection(db, "entry"),where('date', '>=', tenDaysAgoString));
-    const querySnapshot = await getDocs(entryLastTendaysRef);
+  //   console.log(tenDaysAgoString);
+  //   const entryLastTendaysRef = query(collection(db, "entry"),where('date', '>=', tenDaysAgoString));
+  //   const querySnapshot = await getDocs(entryLastTendaysRef);
   
-    querySnapshot.forEach(doc => {
-      console.log(doc.data());
-    });
+  //   const entries = querySnapshot.docs.map(doc => doc.data());
+  //   const groupedEntries = groupBy(entries, 'date');
+  //   const chartData = Object.keys(groupedEntries).sort().map(date => {
+  //     const entriesForDate = groupedEntries[date];
+  //     const avgVoltage = entriesForDate.reduce((sum, entry) => {
+  //       const max = parseFloat(entry.DayMaxVoltage);
+  //       const min = parseFloat(entry.DayMinVoltage);
+  //       return sum + ((max + min) / 2);
+  //     }, 0) / entriesForDate.length;
+  //     return { date, avgVoltage: Math.round(avgVoltage) };
+  //   });
+  //   const chartValues = chartData.map(({ avgVoltage }) => avgVoltage);
+  // };
 
-    return querySnapshot;
-  };
-  
-  const totalinfo = getLastTenDaysEntries();
-  console.log(totalinfo);
+  // const fetchLastTenDaysEntries = async () => {
+  //   await getLastTenDaysEntries();
+  // };
+
+  // fetchLastTenDaysEntries();
+
+  // const dates = chartData.map(({ date }) => date);
+  // console.log(dates);
+
+  // const voltages = chartData.map(({ avgVoltage }) => avgVoltage);
+  // console.log(voltages);
+
   return (
     <>
       <Helmet>
@@ -114,29 +136,29 @@ export default function DashboardAppPage() {
           </Grid>
 
           <Grid item xs={12} md={12} lg={12}>
-            <AppWebsiteVisits
+            <AppVoltages
               title="Average Voltage Supply"
               chartLabels={[
-                '01-01-2003',
-                '02-01-2003',
-                '03-01-2003',
-                '04-01-2003',
-                '05/01/2003',
-                '06/01/2003',
-                '07/01/2003',
-                '08/01/2003',
-                '09/01/2003',
-                '10/01/2003',
-                '11/01/2003',
+                '10-01-2023',
+                '10-02-2023',
+                '10-03-2023',
+                '10-04-2023',
+                '10/05/2023',
+                '10/06/2023',
+                '10/07/2023',
+                '10/08/2023',
+                '10/09/2023',
+                '10/10/2023',
+                '10/11/2023',
               ]}
               chartData={[
                 {
-                  name: 'Team A',
-                  type: 'column',
-                  fill: 'solid',
-                  data: [23, 11, 22, 27, 13, 22, 37, 21, 44, 22, 30],
-                },
-              ]}
+                name: 'Voltage',
+                type: 'column',
+                fill: 'solid',
+                data: [226,227,230,225,228,229,226,227,229,231,225],
+              },
+            ]}
             />
           </Grid>
 
