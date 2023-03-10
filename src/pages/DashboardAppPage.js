@@ -1,12 +1,11 @@
 import { Helmet } from 'react-helmet-async';
-import { faker } from '@faker-js/faker';
 // @mui
 import { Grid, Container, Typography } from '@mui/material';
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // firebase
-import { collection, getDocs , getFirestore, query } from 'firebase/firestore';
+import { collection, getDocs , getFirestore, query, orderBy, limit, where } from 'firebase/firestore';
 import firebase from "firebase/compat/app";
 
 // Rect
@@ -14,7 +13,6 @@ import { useState, useEffect } from 'react';
 
 // sections
 import {
-  AppNewsUpdate,
   AppWebsiteVisits,
   AppWidgetSummary,
   AppDistricts,
@@ -25,12 +23,11 @@ import {
 export default function DashboardAppPage() {
 
   const [users, setUsers] = useState([]);
-  const [entryList, setEntryList] = useState([{}]);
   const [userCount, setUserCount] = useState(0);
   const [userCountsByDistrict, setUserCountsByDistrict] = useState({});
 
   const db = getFirestore(firebase.app());
-  const entryCollectionRef = query(collection(db, "entry"));
+  const entryLastdayRef = query(collection(db, "entry"), orderBy('date', 'desc'), limit(1));
   const userCollectionRef = query(collection(db, "user"));
   
   useEffect(() => {
@@ -61,8 +58,41 @@ export default function DashboardAppPage() {
       }
     };
     fetchUserData();
-  }, []);
+  },[]);
 
+  const getLastEntryDate = async () => {
+    const querySnapshot = await getDocs(entryLastdayRef);    
+    const lastEntry = querySnapshot.docs[0];
+    const date = lastEntry?.data()?.date;
+    return date;
+  };
+  
+  // Get the last 10 days of entries from the database
+  const getLastTenDaysEntries = async () => {
+    const lastEntryDate = await getLastEntryDate();
+    console.log(lastEntryDate);
+    const parts = lastEntryDate.split('-');
+    const year = parseInt(parts[2], 10);
+    const month = parseInt(parts[1], 10) - 1; // subtract 1 since month is zero-indexed
+    const day = parseInt(parts[0], 10);
+    const date = new Date(year, month, day);
+    const tenDaysAgo = new Date(date- (9 * 24 * 60 * 60 * 1000));
+    console.log(tenDaysAgo);
+    const tenDaysAgoString = `${tenDaysAgo.toISOString().substring(8, 10)}-${tenDaysAgo.toISOString().substring(5, 7)}-${tenDaysAgo.toISOString().substring(0, 4)}`;
+
+    console.log(tenDaysAgoString);
+    const entryLastTendaysRef = query(collection(db, "entry"),where('date', '>=', tenDaysAgoString));
+    const querySnapshot = await getDocs(entryLastTendaysRef);
+  
+    querySnapshot.forEach(doc => {
+      console.log(doc.data());
+    });
+
+    return querySnapshot;
+  };
+  
+  const totalinfo = getLastTenDaysEntries();
+  console.log(totalinfo);
   return (
     <>
       <Helmet>
@@ -85,13 +115,12 @@ export default function DashboardAppPage() {
 
           <Grid item xs={12} md={12} lg={12}>
             <AppWebsiteVisits
-              title="Website Visits"
-              subheader="(+43%) than last year"
+              title="Average Voltage Supply"
               chartLabels={[
-                '01/01/2003',
-                '02/01/2003',
-                '03/01/2003',
-                '04/01/2003',
+                '01-01-2003',
+                '02-01-2003',
+                '03-01-2003',
+                '04-01-2003',
                 '05/01/2003',
                 '06/01/2003',
                 '07/01/2003',
@@ -117,19 +146,6 @@ export default function DashboardAppPage() {
               chartData={Object.entries(userCountsByDistrict).map(([district, count]) => ({
                 label: district,
                 value: count
-              }))}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={6}>
-            <AppNewsUpdate
-              title="News Update"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
-                title: faker.name.jobTitle(),
-                description: faker.name.jobTitle(),
-                image: `/assets/images/covers/cover_${index + 1}.jpg`,
-                postedAt: faker.date.recent(),
               }))}
             />
           </Grid>
