@@ -35,7 +35,7 @@ const TABLE_HEAD = [
   { id: 'email', label: 'Email', alignRight: false },
   { id: 'address', label: 'Address', alignRight: false },
   { id: 'elecAccNumber', label: 'Electricity Account Number', alignRight: false },
-  { id: 'nidnum', label: 'National ID Number', alignRight: false },
+  { id: 'nidnum', label: 'National ID Card Number', alignRight: false },
 ];
 
 // ----------------------------------------------------------------------
@@ -86,7 +86,7 @@ export default function UserPage() {
   //  Filter the data based on the filterBy criteria
   const filteredUsers = filter(users, (user) => {
     const fullName = `${user.fname} ${user.lname}`.toLowerCase();
-    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase()) || user.elecAccNumber.includes(filterBy.toLowerCase());
+    return fullName.includes(filterBy.toLowerCase()) || user.email.includes(filterBy.toLowerCase()) || user.elecAccNumber.includes(filterBy.toLowerCase()) || user.nidnum.includes(filterBy.toLowerCase());
   });
 
   //  Define function to handle table header click and change sorting criteria

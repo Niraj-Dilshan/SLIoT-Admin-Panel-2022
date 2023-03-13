@@ -205,7 +205,7 @@ export default function UserInfo() {
                         Address: {address}
                     </Typography>
                     <Typography variant="h6" gutterBottom>
-                        NID Number: {nidnum}
+                        NIC Number: {nidnum}
                     </Typography>
                 </cardContent>
                 <center>  
