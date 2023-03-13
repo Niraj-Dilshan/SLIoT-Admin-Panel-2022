@@ -77,11 +77,11 @@ export default function DashboardAppPage() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={6}>
-            <AppWidgetSummary title="New Users" total={userCount} color="warning" icon={<PersonAddAltIcon/>} />
+            <AppWidgetSummary title="New Users" total={userCount} color="primary" icon={<PersonAddAltIcon/>} />
           </Grid>
 
           <Grid item xs={12} sm={6} md={6}>
-            <AppWidgetSummary title="Total Users" total={userCount} color="warning" icon={<PeopleAltIcon/>} />
+            <AppWidgetSummary title="Total Users" total={userCount} color="primary" icon={<PeopleAltIcon/>} />
           </Grid>
 
           <Grid item xs={12} md={12} lg={12}>

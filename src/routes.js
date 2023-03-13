@@ -13,6 +13,8 @@ import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import DashboardAppPage from './pages/DashboardAppPage';
 import UserInfo from './pages/UserInfo';
+import Billing from './pages/Billing';
+import BillingInfo from './pages/BillingInfo';
 
 // ----------------------------------------------------------------------
 
@@ -58,6 +60,8 @@ export default function Router() {
         { path: 'app', element: <DashboardAppPage /> },
         { path: 'user', element: <UserPage /> },
         { path: 'info', element: <UserInfo /> },
+        { path: 'billing', element: <Billing /> },
+        { path: 'billinginfo', element: <BillingInfo /> },
       ],
     },
     {

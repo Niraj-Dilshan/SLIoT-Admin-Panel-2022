@@ -16,6 +16,11 @@ const navConfig = [
     path: '/dashboard/user',
     icon: icon('ic_user'),
   },
+  {
+    title: 'billing',
+    path: '/dashboard/billing',
+    icon: icon('i-billing'),
+  },
 ];
 
 export default navConfig;
