@@ -52,7 +52,7 @@ export default function BillingInfo() {
   const elecAccNumber = sessionStorage.getItem('elecAccNumber');
   const fname = sessionStorage.getItem('fname');
   const lname = sessionStorage.getItem('lname');
-  
+
   // Define initial state for loading and users
   const [loading, setLoading] = useState(true);
   const [billing, setbilling] = useState([]);
@@ -106,16 +106,28 @@ export default function BillingInfo() {
     return bill.billing_period_start.includes(filterBy) || bill.billing_period_end.includes(filterBy);
   });
 
+  // Sort the filtered data based on the sortBy criteria
+  const sortedBillings = orderBy(
+    filteredBillings,
+    [sortBy === 'billing_period_start' ? (bill) => new Date(bill.billing_period_start) : sortBy],
+    ['asc']
+  );
+
+  //  sorting and pagination
+  const sortedBillingForCurrentPage = sortedBillings.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
+
   //  Define function to handle table header click and change sorting criteria
   const handleSortBy = (id) => {
     setSortBy(id);
   };
 
-  //  Sort the filtered data based on the sortBy criteria
-  const sortedBillings = sortBy ? orderBy(filteredBillings, sortBy) : filteredBillings;
-
-  //  sorting and pagination
-  const sortedBillingForCurrentPage = sortedBillings.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  // Default sort by billing_period_start
+  useEffect(() => {
+    setSortBy('billing_period_start');
+  }, []);
 
   const handleFilterByChange = (event) => {
     setFilterBy(event.target.value);
