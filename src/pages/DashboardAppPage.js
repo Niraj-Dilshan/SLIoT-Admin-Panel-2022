@@ -18,6 +18,7 @@ import { useState, useEffect } from 'react';
 import {
   AppWidgetSummary,
   AppDistricts,
+  AppSystemUpdate,
 } from '../sections/@dashboard/app';
 
 // ----------------------------------------------------------------------
@@ -27,11 +28,8 @@ export default function DashboardAppPage() {
   const [users, setUsers] = useState([]);
   const [userCount, setUserCount] = useState(0);
   const [userCountsByDistrict, setUserCountsByDistrict] = useState({});
-  // const [chartData, setChartData] = useState([]);
-  // const [chartLabels, setChartLabels] = useState([]);
 
   const db = getFirestore(firebase.app());
-  // const entryLastdayRef = query(collection(db, "entry"), orderBy('date', 'desc'), limit(1));
   const userCollectionRef = query(collection(db, "user"));
   
   useEffect( () => {
@@ -84,6 +82,20 @@ export default function DashboardAppPage() {
             <AppWidgetSummary title="Total Users" total={userCount} color="primary" icon={<PeopleAltIcon/>} />
           </Grid>
 
+          <Grid item xs={12} md={12} lg={12}>
+            <AppSystemUpdate
+              title="System Updates"
+              list={[
+                {
+                  id: 1,
+                  title: "Software Developer",
+                  description: "We are seeking a software developer with experience in React and Node.js.",
+                  image: "/assets/images/covers/cover_1.jpg",
+                  postedAt: "2022-11-30T00:00:00.000Z",
+                },
+              ]}
+            />
+          </Grid>
           <Grid item xs={12} md={12} lg={12}>
             <AppDistricts
               title="Categorize Users by District"

@@ -4,37 +4,30 @@ import { Box, Stack, Link, Card, Button, Divider, Typography, CardHeader } from 
 // utils
 import { fToNow } from '../../../utils/formatTime';
 // components
-import Iconify from '../../../components/iconify';
 import Scrollbar from '../../../components/scrollbar';
 
 // ----------------------------------------------------------------------
 
-AppNewsUpdate.propTypes = {
+AppSystemUpdate.propTypes = {
   title: PropTypes.string,
   subheader: PropTypes.string,
   list: PropTypes.array.isRequired,
 };
 
-export default function AppNewsUpdate({ title, subheader, list, ...other }) {
+export default function AppSystemUpdate({ title, subheader, list, ...other }) {
   return (
     <Card {...other}>
       <CardHeader title={title} subheader={subheader} />
 
       <Scrollbar>
         <Stack spacing={3} sx={{ p: 3, pr: 0 }}>
-          {list.map((news) => (
-            <NewsItem key={news.id} news={news} />
+          {list.map((systeminfo) => (
+            <NewsItem key={systeminfo.id} systeminfo={systeminfo} />
           ))}
         </Stack>
       </Scrollbar>
 
       <Divider />
-
-      <Box sx={{ p: 2, textAlign: 'right' }}>
-        <Button size="small" color="inherit" endIcon={<Iconify icon={'eva:arrow-ios-forward-fill'} />}>
-          View all
-        </Button>
-      </Box>
     </Card>
   );
 }
@@ -42,7 +35,7 @@ export default function AppNewsUpdate({ title, subheader, list, ...other }) {
 // ----------------------------------------------------------------------
 
 NewsItem.propTypes = {
-  news: PropTypes.shape({
+  systeminfo: PropTypes.shape({
     description: PropTypes.string,
     image: PropTypes.string,
     postedAt: PropTypes.instanceOf(Date),
@@ -50,8 +43,8 @@ NewsItem.propTypes = {
   }),
 };
 
-function NewsItem({ news }) {
-  const { image, title, description, postedAt } = news;
+function NewsItem({ systeminfo }) {
+  const { image, title, description, postedAt } = systeminfo;
 
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
