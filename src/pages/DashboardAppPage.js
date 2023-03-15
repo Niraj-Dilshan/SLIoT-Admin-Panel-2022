@@ -5,11 +5,8 @@ import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 
 // firebase
-import { collection, getDocs , getFirestore, query, setDoc, doc } from 'firebase/firestore';
+import { collection, getDocs , getFirestore, query, where, and} from 'firebase/firestore';
 import firebase from "firebase/compat/app";
-
-// lodash
-// import { groupBy} from "lodash";
 
 // Rect
 import { useState, useEffect } from 'react';
@@ -28,9 +25,15 @@ export default function DashboardAppPage() {
   const [users, setUsers] = useState([]);
   const [userCount, setUserCount] = useState(0);
   const [userCountsByDistrict, setUserCountsByDistrict] = useState({});
+  const [error, setError] = useState(0);
+  const [errorMessageTitle, setErrorMessageTitle] = useState("");
+  const [errorMessageBody, setErrorMessageBody] = useState("");
+  const [errorImage, setErrorImage] = useState("");
+  const [errorPostedAt, setErrorPostedAt] = useState("");
 
   const db = getFirestore(firebase.app());
   const userCollectionRef = query(collection(db, "user"));
+  const errorCollectionRef = query(collection(db, "fault"), where("fault", "==", "1"));
   
   useEffect( () => {
     const fetchUserData = async () => {
@@ -62,6 +65,107 @@ export default function DashboardAppPage() {
     fetchUserData();
   },[]);
 
+  useEffect(() => {
+    const fetchFaultData = async () => {
+      const currentTime = new Date();
+      try {
+        const faultSnapshot = await getDocs(errorCollectionRef);
+        const fetchedfaults = faultSnapshot.docs.map(doc => ({
+          elecAccNumber: doc.id,
+          faults: doc.data().fault,
+        }));
+        console.log(fetchedfaults.length);
+        console.log(fetchedfaults);
+        if (fetchedfaults.length > 0) {
+          setError(1);
+          const firstFault = fetchedfaults[0];
+          const firstDocId = firstFault.elecAccNumber;
+          console.log(firstDocId);
+          const houseinfoCollectionRef = query(collection(db, "houseinfo"), where("elecAccNumber", "==", firstDocId));
+          const houseinfoSnapshot = await getDocs(houseinfoCollectionRef);
+          const fetchedHouseinfo = houseinfoSnapshot.docs.map(doc => ({
+            id: doc.id,
+            elecAccNumber: doc.data().elecAccNumber,
+            phase: doc.data().phase,
+            transformer_id: doc.data().transformer_id,
+          }));
+          console.log(fetchedHouseinfo);
+          const firstHouseinfo = fetchedHouseinfo[0];
+          const firstHousePhase = firstHouseinfo.phase;
+          const firstHouseTransformerId = firstHouseinfo.transformer_id;
+          const transformerOwnershipCollectionRef = query(collection(db, "houseinfo"), where("transformer_id", "==", firstHouseTransformerId), where ("phase", "==", firstHousePhase), where ("elecAccNumber", "!=", firstDocId));
+          const transformerOwnershipSnapshot = await getDocs(transformerOwnershipCollectionRef);
+          const fetchedTransformerOwnership = transformerOwnershipSnapshot.docs.map(doc => ({
+            id: doc.id,
+            elecAccNumber: doc.data().elecAccNumber,
+            phase: doc.data().phase,
+            transformer_id: doc.data().transformer_id,
+          }));
+          console.log(fetchedTransformerOwnership);
+          if(fetchedTransformerOwnership.length > 0){
+            const otherHouseInSamePhase = fetchedTransformerOwnership[0];
+            const otherHouseInSamePhaseElecAccNumber = otherHouseInSamePhase.elecAccNumber;
+            const otherHouseInSamePhaseFaultCheck = query(collection(db, "fault"), where("elecAccNumber", "==", otherHouseInSamePhaseElecAccNumber), where ("fault", "==", "1"));
+            const otherHouseInSamePhaseFaultSnapshot = await getDocs(otherHouseInSamePhaseFaultCheck);
+            const fetchedOtherHouseInSamePhaseFault = otherHouseInSamePhaseFaultSnapshot.docs.map(doc => ({
+              elecAccNumber: doc.id,
+              faults: doc.data().fault,
+            }));
+            console.log(fetchedOtherHouseInSamePhaseFault);
+            if(fetchedOtherHouseInSamePhaseFault.length > 0){
+              const phaseFaultLookUP = query(collection(db, "houseinfo"), where("transformer_id", "==", firstHouseTransformerId), where ("phase", "!=", firstHousePhase));
+              const phaseFaultLookUPSnapshot = await getDocs(phaseFaultLookUP);
+              const fetchedPhaseFaultLookUP = phaseFaultLookUPSnapshot.docs.map(doc => ({
+                id: doc.id,
+                elecAccNumber: doc.data().elecAccNumber,
+                phase: doc.data().phase,
+                transformer_id: doc.data().transformer_id,
+              }));
+              const otherHouseInDifferentPhase = fetchedPhaseFaultLookUP[0];
+              const otherHouseInDifferentPhaseElecAccNumber = otherHouseInDifferentPhase.elecAccNumber;
+              const otherHouseInDifferentPhaseFaultCheck = query(collection(db, "fault"), where("elecAccNumber", "==", otherHouseInDifferentPhaseElecAccNumber), where ("fault", "==", "1"));
+              const otherHouseInDifferentPhaseFaultSnapshot = await getDocs(otherHouseInDifferentPhaseFaultCheck);
+              const fetchedOtherHouseInDifferentPhaseFault = otherHouseInDifferentPhaseFaultSnapshot.docs.map(doc => ({
+                elecAccNumber: doc.id,
+                faults: doc.data().fault,
+              }));
+              if(fetchedOtherHouseInDifferentPhaseFault.length > 0){
+                setErrorMessageTitle(`Power Failure In transformer ID:${firstHouseTransformerId}`);
+                setErrorMessageBody(`Failure is in ID:${firstHouseTransformerId} transformer`);
+                setErrorImage("/assets/images/covers/cover_14.jpg");
+                setErrorPostedAt(currentTime);
+              }else{
+                setErrorMessageTitle(`Power Failure In phase ${firstHousePhase}`);
+                setErrorMessageBody(`Failure is in ID:${firstHouseTransformerId} phase ${firstHousePhase}`);
+                setErrorImage("/assets/images/covers/cover_14.jpg");
+                setErrorPostedAt(currentTime);
+              }
+            }else{
+              setErrorMessageTitle(`Power Failure In user ${firstDocId}`);
+              setErrorMessageBody("Failure is in house");
+              setErrorImage("/assets/images/covers/cover_14.jpg");
+              setErrorPostedAt(currentTime);
+            }
+          }else{
+            setErrorMessageTitle(`Power out Failure In user ${firstDocId}`);
+            setErrorMessageBody("Error is unknown. Because Insufficient data");
+            setErrorImage("/assets/images/covers/cover_14.jpg");
+            setErrorPostedAt(currentTime);
+          }
+        }else{
+          setError(0);
+          setErrorMessageTitle(`No Failure In System`);
+          setErrorMessageBody("System is working fine");
+          setErrorImage("/assets/images/covers/cover_23.jpg");
+          setErrorPostedAt(currentTime);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchFaultData();
+  }, [error]);
+
   return (
     <>
       <Helmet>
@@ -88,10 +192,10 @@ export default function DashboardAppPage() {
               list={[
                 {
                   id: 1,
-                  title: "Software Developer",
-                  description: "We are seeking a software developer with experience in React and Node.js.",
-                  image: "/assets/images/covers/cover_1.jpg",
-                  postedAt: "2022-11-30T00:00:00.000Z",
+                  title: errorMessageTitle,
+                  description: errorMessageBody,
+                  image: errorImage,
+                  postedAt: errorPostedAt,
                 },
               ]}
             />

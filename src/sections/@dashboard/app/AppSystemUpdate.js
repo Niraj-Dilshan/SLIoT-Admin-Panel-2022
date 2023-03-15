@@ -1,6 +1,6 @@
 // @mui
 import PropTypes from 'prop-types';
-import { Box, Stack, Link, Card, Button, Divider, Typography, CardHeader } from '@mui/material';
+import { Box, Stack, Link, Card, Divider, Typography, CardHeader } from '@mui/material';
 // utils
 import { fToNow } from '../../../utils/formatTime';
 // components
@@ -21,8 +21,8 @@ export default function AppSystemUpdate({ title, subheader, list, ...other }) {
 
       <Scrollbar>
         <Stack spacing={3} sx={{ p: 3, pr: 0 }}>
-          {list.map((systeminfo) => (
-            <NewsItem key={systeminfo.id} systeminfo={systeminfo} />
+          {list.map((news) => (
+            <NewsItem key={news.id} news={news} />
           ))}
         </Stack>
       </Scrollbar>
@@ -35,7 +35,7 @@ export default function AppSystemUpdate({ title, subheader, list, ...other }) {
 // ----------------------------------------------------------------------
 
 NewsItem.propTypes = {
-  systeminfo: PropTypes.shape({
+  news: PropTypes.shape({
     description: PropTypes.string,
     image: PropTypes.string,
     postedAt: PropTypes.instanceOf(Date),
@@ -43,8 +43,8 @@ NewsItem.propTypes = {
   }),
 };
 
-function NewsItem({ systeminfo }) {
-  const { image, title, description, postedAt } = systeminfo;
+function NewsItem({ news }) {
+  const { image, title, description, postedAt } = news;
 
   return (
     <Stack direction="row" alignItems="center" spacing={2}>
