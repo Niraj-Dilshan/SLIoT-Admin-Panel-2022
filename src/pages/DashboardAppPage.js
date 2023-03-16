@@ -71,17 +71,16 @@ export default function DashboardAppPage() {
       try {
         const faultSnapshot = await getDocs(errorCollectionRef);
         const fetchedfaults = faultSnapshot.docs.map(doc => ({
-          elecAccNumber: doc.id,
+          id: doc.id,
+          elecAccNumber: doc.data().elecAccNumber,
           faults: doc.data().fault,
         }));
-        console.log(fetchedfaults.length);
-        console.log(fetchedfaults);
         if (fetchedfaults.length > 0) {
           setError(1);
           const firstFault = fetchedfaults[0];
-          const firstDocId = firstFault.elecAccNumber;
-          console.log(firstDocId);
-          const houseinfoCollectionRef = query(collection(db, "houseinfo"), where("elecAccNumber", "==", firstDocId));
+          const firstHouseEnum = firstFault.elecAccNumber;
+          console.log(firstHouseEnum);
+          const houseinfoCollectionRef = query(collection(db, "houseinfo"), where("elecAccNumber", "==", firstHouseEnum));
           const houseinfoSnapshot = await getDocs(houseinfoCollectionRef);
           const fetchedHouseinfo = houseinfoSnapshot.docs.map(doc => ({
             id: doc.id,
@@ -89,29 +88,31 @@ export default function DashboardAppPage() {
             phase: doc.data().phase,
             transformer_id: doc.data().transformer_id,
           }));
-          console.log(fetchedHouseinfo);
+          console.log(fetchedHouseinfo.length);
           const firstHouseinfo = fetchedHouseinfo[0];
+          console.log(firstHouseinfo);
           const firstHousePhase = firstHouseinfo.phase;
           const firstHouseTransformerId = firstHouseinfo.transformer_id;
-          const transformerOwnershipCollectionRef = query(collection(db, "houseinfo"), where("transformer_id", "==", firstHouseTransformerId), where ("phase", "==", firstHousePhase), where ("elecAccNumber", "!=", firstDocId));
-          const transformerOwnershipSnapshot = await getDocs(transformerOwnershipCollectionRef);
-          const fetchedTransformerOwnership = transformerOwnershipSnapshot.docs.map(doc => ({
+          const secondHouseSamePhaseRf = query(collection(db, "houseinfo"), where("transformer_id", "==", firstHouseTransformerId), where ("phase", "==", firstHousePhase), where ("elecAccNumber", "!=", firstHouseEnum));
+          const secondHouseSameSnapshot = await getDocs(secondHouseSamePhaseRf);
+          const fetchedsecondHouseSame = secondHouseSameSnapshot.docs.map(doc => ({
             id: doc.id,
             elecAccNumber: doc.data().elecAccNumber,
             phase: doc.data().phase,
             transformer_id: doc.data().transformer_id,
           }));
-          console.log(fetchedTransformerOwnership);
-          if(fetchedTransformerOwnership.length > 0){
-            const otherHouseInSamePhase = fetchedTransformerOwnership[0];
+          if(fetchedsecondHouseSame.length > 0){
+            const otherHouseInSamePhase = fetchedsecondHouseSame[0];
             const otherHouseInSamePhaseElecAccNumber = otherHouseInSamePhase.elecAccNumber;
-            const otherHouseInSamePhaseFaultCheck = query(collection(db, "fault"), where("elecAccNumber", "==", otherHouseInSamePhaseElecAccNumber), where ("fault", "==", "1"));
+            console.log(otherHouseInSamePhaseElecAccNumber);
+            const otherHouseInSamePhaseFaultCheck = query(collection(db, "fault"), where ("elecAccNumber", "==", otherHouseInSamePhaseElecAccNumber), where ("fault", "==", "1"));
             const otherHouseInSamePhaseFaultSnapshot = await getDocs(otherHouseInSamePhaseFaultCheck);
             const fetchedOtherHouseInSamePhaseFault = otherHouseInSamePhaseFaultSnapshot.docs.map(doc => ({
-              elecAccNumber: doc.id,
+              id: doc.id,
+              elecAccNumber: doc.data().elecAccNumber,
               faults: doc.data().fault,
             }));
-            console.log(fetchedOtherHouseInSamePhaseFault);
+            console.log(fetchedOtherHouseInSamePhaseFault.length);
             if(fetchedOtherHouseInSamePhaseFault.length > 0){
               const phaseFaultLookUP = query(collection(db, "houseinfo"), where("transformer_id", "==", firstHouseTransformerId), where ("phase", "!=", firstHousePhase));
               const phaseFaultLookUPSnapshot = await getDocs(phaseFaultLookUP);
@@ -121,12 +122,14 @@ export default function DashboardAppPage() {
                 phase: doc.data().phase,
                 transformer_id: doc.data().transformer_id,
               }));
+              console.log(fetchedPhaseFaultLookUP.length);
               const otherHouseInDifferentPhase = fetchedPhaseFaultLookUP[0];
               const otherHouseInDifferentPhaseElecAccNumber = otherHouseInDifferentPhase.elecAccNumber;
               const otherHouseInDifferentPhaseFaultCheck = query(collection(db, "fault"), where("elecAccNumber", "==", otherHouseInDifferentPhaseElecAccNumber), where ("fault", "==", "1"));
               const otherHouseInDifferentPhaseFaultSnapshot = await getDocs(otherHouseInDifferentPhaseFaultCheck);
               const fetchedOtherHouseInDifferentPhaseFault = otherHouseInDifferentPhaseFaultSnapshot.docs.map(doc => ({
-                elecAccNumber: doc.id,
+                id: doc.id,
+                elecAccNumber: doc.data().elecAccNumber,
                 faults: doc.data().fault,
               }));
               if(fetchedOtherHouseInDifferentPhaseFault.length > 0){
@@ -141,13 +144,13 @@ export default function DashboardAppPage() {
                 setErrorPostedAt(currentTime);
               }
             }else{
-              setErrorMessageTitle(`Power Failure In user ${firstDocId}`);
+              setErrorMessageTitle(`Power Failure In user ${firstHouseEnum}`);
               setErrorMessageBody("Failure is in house");
               setErrorImage("/assets/images/covers/cover_14.jpg");
               setErrorPostedAt(currentTime);
             }
           }else{
-            setErrorMessageTitle(`Power out Failure In user ${firstDocId}`);
+            setErrorMessageTitle(`Power Failure In user ${firstHouseEnum}`);
             setErrorMessageBody("Error is unknown. Because Insufficient data");
             setErrorImage("/assets/images/covers/cover_14.jpg");
             setErrorPostedAt(currentTime);
