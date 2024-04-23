@@ -1,70 +1,18 @@
-# Getting Started with Create React App
+# SLIoT-2022
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## This project includes the solution for SLIoT challenge 2022
+### Solution By: Team Metatron
 
-## Available Scripts
+[Go to the hosted site](https://sliot.mtron.me)
 
-In the project directory, you can run:
+### Login Screen
+<img width="1440" alt="Screenshot 2023-02-11 at 22 50 47" src="https://user-images.githubusercontent.com/44818405/218271869-b3f8d870-dd3d-48bb-bd99-3f437c1eac4d.png">
 
-### `npm start`
+### Signin Screen
+<img width="1440" alt="Screenshot 2023-02-11 at 22 51 47" src="https://user-images.githubusercontent.com/44818405/218271932-e6729759-d565-43ca-ad85-05b58545816a.png">
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Home with daily energy comsumption graph
+<img width="1440" alt="Screenshot 2023-02-13 at 14 40 47" src="https://user-images.githubusercontent.com/44818405/218417319-37e6305b-0395-49f1-b689-7e31784795e9.png">
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+### Home with daily apperent power consumption graph and other measurements 
+<img width="1440" alt="Screenshot 2023-02-13 at 14 41 01" src="https://user-images.githubusercontent.com/44818405/218417480-710df09b-c225-4006-b877-dcc71462f1bc.png">
